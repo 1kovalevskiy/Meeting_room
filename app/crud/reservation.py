@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 from fastapi_users_db_sqlalchemy import GUID
-from sqlalchemy import and_, between, or_, select
+from sqlalchemy import and_, between, or_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
@@ -20,7 +20,7 @@ class CRUDReservation(CRUDBase):
             meetingroom_id: int,
             reservation_id: Optional[int] = None,
             session: AsyncSession,
-    ) -> list[Reservation]:
+    ) -> List[Reservation]:
 
         select_stmt = select(Reservation).where(
             Reservation.meetingroom_id == meetingroom_id
@@ -68,6 +68,22 @@ class CRUDReservation(CRUDBase):
             )
         )
         reservations = reservations.scalars().all()
+        return reservations
+
+    async def get_count_res_at_the_same_time(
+            self,
+            from_reserve: datetime,
+            to_reserve: datetime,
+            session: AsyncSession,
+    ) -> List[Dict[str, int]]:
+        reservations = await session.execute(
+            select([Reservation.meetingroom_id,
+                    func.count(Reservation.meetingroom_id)]).where(
+                Reservation.from_reserve >= from_reserve,
+                Reservation.to_reserve <= to_reserve
+            ).group_by(Reservation.meetingroom_id)
+        )
+        reservations = reservations.all()
         return reservations
 
 

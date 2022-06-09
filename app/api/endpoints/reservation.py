@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,7 +35,7 @@ async def create_reservation(
 
 @router.get(
     '/',
-    response_model=list[ReservationDB],
+    response_model=List[ReservationDB],
     dependencies=[Depends(current_superuser)],
 )
 async def get_all_reservations(
@@ -81,7 +83,7 @@ async def update_reservation(
 
 @router.get(
     '/my_reservations',
-    response_model=list[ReservationDB],
+    response_model=List[ReservationDB],
     response_model_exclude={'user_id'},
 )
 async def get_my_reservations(
